@@ -1,0 +1,13 @@
+anyio==3.5.0
+fastapi==0.75.1
+idna==3.3
+pydantic==1.9.0
+sniffio==1.2.0
+starlette==0.17.1
+typing_extensions==4.1.1
+jose~=1.0.0
+passlib~=1.7.4
+pymongo~=3.12.3
+motor~=2.5.1
+uvicorn~=0.17.6
+loguru~=0.6.0
