@@ -1,7 +1,7 @@
-from database_api.core.connection import db
+from fastapi import Request
 
 
 class BaseRepository:
-    def __init__(self, database: db):
+    def __init__(self, request: Request):
         """Connect to database."""
-        self.database = database
+        self.database = request.app.mongodb

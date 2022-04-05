@@ -1,9 +1,9 @@
 from database_api.repositories.users import UserRepository
-from database_api.core.connection import db
+from fastapi import Request
 
 
-def get_user_repository() -> UserRepository:
-    return UserRepository(db)
+def get_user_repository(request: Request) -> UserRepository:
+    return UserRepository(request)
 
 
 
