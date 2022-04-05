@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Body, status
 from pydantic import EmailStr
 from authentication_api.models.user import UserIn, User
-from database_api.core.depends import get_user_repository
+from database_api.endpoints.depends import get_user_repository
 from database_api.repositories.users import UserRepository
 
 db_router = APIRouter()
@@ -16,7 +16,7 @@ async def get_users(count: int, users: UserRepository = Depends(get_user_reposit
     return await users.get(count)
 
 
-@db_router.get("/get_user/",
+@db_router.get("/get_user_by_email/",
                response_model=User,
                response_model_exclude={"hashed_password"},
                status_code=status.HTTP_200_OK)
