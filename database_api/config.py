@@ -6,3 +6,4 @@ DATABASE_HOST = config("SI_DATABASE_HOST", default='localhost')
 DATABASE_PORT = config("SI_DATABASE_PORT", default=27017)
 DATABASE_NAME = config("SI_DATABASE_NAME", default='stat_inc')
 
+DATABASE_CONTAINER_NAME = config("SI_DATABASE_CONTAINER_NAME", default='mongo')

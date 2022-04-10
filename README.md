@@ -13,4 +13,17 @@
 
 - python 3.10
 - FastAPI 0.75.1
+- docker
+- docker-compose
 
+
+
+### Запуск проекта
+
+```
+git clone https://gitlab.com/stat-inc/gateway.git
+cd gateway
+docker-compose up -d --build
+```
+
+**Документация находится по адресу**  **http://127.0.0.1:8002/docs** 
