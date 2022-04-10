@@ -2,7 +2,7 @@ import motor.motor_asyncio
 from fastapi import FastAPI
 import uvicorn
 from authentication_api.endpoints.auth import auth_router
-from database_api.config import DATABASE_HOST, DATABASE_PORT, DATABASE_NAME
+from database_api.config import DATABASE_CONTAINER_NAME, DATABASE_NAME, DATABASE_PORT
 from database_api.endpoints.database import db_router
 
 app = FastAPI(title="Stat inc")
@@ -13,7 +13,7 @@ app.include_router(db_router, prefix='/db', tags=["database"])
 
 @app.on_event("startup")
 async def start_up_db_client():
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
+    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
     app.mongodb = app.mongodb_client[DATABASE_NAME]
 
 
