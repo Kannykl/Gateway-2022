@@ -8,8 +8,10 @@ class Bot(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     username: str
     password: str
+    is_busy: bool = False
 
 
-class BotIn(Bot):
+class BotIn(BaseModel):
     """Bot data for creating an instance."""
-    pass
+    username: str
+    password: str
