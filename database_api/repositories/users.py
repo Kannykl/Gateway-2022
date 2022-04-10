@@ -34,3 +34,22 @@ class UserRepository(BaseRepository):
         await self.database[UserRepository.COLLECTION_NAME].insert_one(new_user)
 
         return User.parse_obj(new_user)
+
+    async def delete(self, email: EmailStr):
+        await self.database[UserRepository.COLLECTION_NAME].delete_many({'email': email})
+
+    async def update_password(self, email: EmailStr, new_password) -> User:
+        self.database[UserRepository.COLLECTION_NAME]. \
+            update_one({'email': email}, {'$set': {'hashed_password': hash_password(new_password)}})
+
+        updated_user = await self.database[UserRepository.COLLECTION_NAME].find_one({'email': email})
+
+        return User.parse_obj(updated_user)
+
+    async def update_email(self, email: EmailStr, new_email: EmailStr) -> User:
+        self.database[UserRepository.COLLECTION_NAME]. \
+            update_one({'email': email}, {'$set': {'email': new_email}})
+
+        updated_user = await self.database[UserRepository.COLLECTION_NAME].find_one({'email': new_email})
+
+        return User.parse_obj(updated_user)
