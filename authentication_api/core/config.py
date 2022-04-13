@@ -1,4 +1,4 @@
-"""Project config"""
+"""Security config"""
 
 from starlette.config import Config
 
@@ -12,4 +12,3 @@ SECRET_KEY = config(
     cast=str,
     default="3b5c7e654c10a562a3d1eccfa2b3585f28b6ec23c25d0fe787a69a03b6081df6"
 )
-

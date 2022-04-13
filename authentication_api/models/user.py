@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, validator, constr, Field
+"""User schemas"""
 import uuid
+from pydantic import BaseModel, EmailStr, validator, constr, Field
 
 
 class User(BaseModel):
@@ -17,7 +18,8 @@ class UserIn(BaseModel):
     password2: str
 
     @validator("password2")
-    def password_match(cls, v, values, **kwargs):
-        if 'password' in values and v != values['password']:
+    def password_match(cls, value, values, **kwargs):
+        """Matching passwords"""
+        if 'password' in values and value != values['password']:
             raise ValueError("passwords don't match")
-        return v
+        return value

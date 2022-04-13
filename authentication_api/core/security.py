@@ -1,12 +1,12 @@
-import datetime
+"""Security operations"""
 
+import datetime
+from fastapi import Request, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
 from jose import jwt
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette import status
-
 from authentication_api.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
-from fastapi import Request, HTTPException
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -46,7 +46,12 @@ def create_access_token(data: dict) -> str:
         Access token
     """
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)})
+    to_encode.update(
+        {
+            "exp": datetime.datetime.utcnow()
+            + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        }
+    )
 
     return jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
 
@@ -71,12 +76,15 @@ def decode_access_token(token: str):
 
 class JWTBearer(HTTPBearer):
     """Check the validity of the token."""
+
     def __init__(self, auto_error: bool = True):
-        super(JWTBearer, self).__init__(auto_error=auto_error)
+        super().__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
-        exception = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid auth token")
+        credentials: HTTPAuthorizationCredentials = await super().__call__(request)
+        exception = HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid auth token"
+        )
 
         if credentials:
             token = decode_access_token(credentials.credentials)
@@ -86,5 +94,4 @@ class JWTBearer(HTTPBearer):
 
             return credentials.credentials
 
-        else:
-            raise exception
+        raise exception

@@ -1,15 +1,16 @@
-import uuid
+"""Fixtures for database tests"""
 
+import uuid
 import motor.motor_asyncio
 import pytest
 from fastapi.encoders import jsonable_encoder
-
 from database_api.config import DATABASE_HOST, DATABASE_PORT
 from main import app
 
 
 @pytest.fixture()
 async def clear_test_users_db():
+    """Clear database with users collection"""
     app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
     app.mongodb = app.mongodb_client["test_db"]
 
@@ -19,6 +20,7 @@ async def clear_test_users_db():
 
 @pytest.fixture()
 async def clear_test_bots_db():
+    """Clear database with bots collection"""
     app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
     app.mongodb = app.mongodb_client["test_db"]
 
@@ -28,6 +30,7 @@ async def clear_test_bots_db():
 
 @pytest.fixture()
 def valid_user_data():
+    """Valid user data for registration"""
     return {
         "user": {
             "email": "user@example.com",
@@ -39,6 +42,7 @@ def valid_user_data():
 
 @pytest.fixture()
 def user_to_insert():
+    """Valid data to create a user"""
     return {
         "_id": uuid.uuid4(),
         "email": "user@example.com",
@@ -48,6 +52,7 @@ def user_to_insert():
 
 @pytest.fixture()
 async def test_db_with_one_test_user(user_to_insert):
+    """Test db with one user"""
     app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
     app.mongodb = app.mongodb_client["test_db"]
 
@@ -60,6 +65,7 @@ async def test_db_with_one_test_user(user_to_insert):
 
 @pytest.fixture()
 def create_bot_data():
+    """Valid data to create a bot"""
     return {
         "bot": {
             "username": "test_bot",
@@ -70,6 +76,7 @@ def create_bot_data():
 
 @pytest.fixture()
 def bot_to_insert():
+    """Valid bot data to insert in database"""
     return {
         "_id": "123-fdsfa",
         "username": "bot_to_insert",
@@ -80,6 +87,7 @@ def bot_to_insert():
 
 @pytest.fixture()
 def busy_bot_to_insert():
+    """Bot with busy status"""
     return {
         "_id": "gfdgl",
         "username": "bot_to_insert_2",
@@ -90,6 +98,7 @@ def busy_bot_to_insert():
 
 @pytest.fixture()
 async def test_db_with_one_bot(bot_to_insert):
+    """Test db with one bot"""
     app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
     app.mongodb = app.mongodb_client["test_db"]
 
@@ -102,6 +111,7 @@ async def test_db_with_one_bot(bot_to_insert):
 
 @pytest.fixture()
 async def test_db_with_one_busy_bot(busy_bot_to_insert):
+    """Test db with one busy bot"""
     app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_HOST, DATABASE_PORT)
     app.mongodb = app.mongodb_client["test_db"]
 
@@ -114,9 +124,11 @@ async def test_db_with_one_busy_bot(busy_bot_to_insert):
 
 @pytest.fixture()
 def new_password_for_user():
+    """New password for user"""
     return "new_password_for_user"
 
 
 @pytest.fixture()
 def new_email_for_user():
+    """New email for user"""
     return "new_email_for_user"

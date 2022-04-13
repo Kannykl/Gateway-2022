@@ -1,3 +1,5 @@
+"""Token schemas"""
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -11,4 +13,3 @@ class Login(BaseModel):
     """Info for login in system."""
     email: EmailStr
     password: str
-

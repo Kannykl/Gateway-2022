@@ -1,5 +1,6 @@
-import uuid
+"""Bots schemas"""
 
+import uuid
 from pydantic import BaseModel, Field
 
 
