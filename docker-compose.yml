@@ -7,7 +7,7 @@ services:
     volumes:
       - ./:/usr/stat_inc/
     ports:
-      - "8002:8000"
+      - "8000:8000"
     depends_on:
       - mongo
   mongo:
