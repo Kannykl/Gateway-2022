@@ -32,7 +32,8 @@ docker-compose up -d --build
 
 **Контейнер с приложением должен быть запущен!!**
 
-```
+```bash
 docker exec -it gateway_web_1 pytest
+docker exec -it gateway_web_1 pytest --cov=. # c измерением покрытия
 ```
 

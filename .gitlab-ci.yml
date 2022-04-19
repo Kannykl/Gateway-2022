@@ -43,7 +43,7 @@ test:
     - docker network create statinc_network
     - docker run -d --name gateway_mongo_1 -p 27017:27017 --network-alias=mongo --net=statinc_network mongo:5.0.6
     - docker run -d --name=gateway --net=statinc_network $CONTAINER_IMAGE_LATEST
-    - docker exec -t gateway pytest
+    - docker exec -t gateway pytest --cov=.
   rules:
     - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"
 
