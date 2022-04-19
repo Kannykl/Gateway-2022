@@ -61,7 +61,7 @@ async def test_update_user_password(test_db_with_one_test_user,
     """Test update user password with new valid password"""
     async with AsyncClient(app=app, base_url="http://localhost/db/") as async_client:
         response = await async_client.patch(f"update_user_password/?email={user_to_insert['email']}"
-                                  f"&new_password={new_password_for_user}")
+                                            f"&new_password={new_password_for_user}")
 
     assert response.status_code == 200
 
@@ -72,7 +72,7 @@ async def test_update_user_email(test_db_with_one_test_user, user_to_insert, new
 
     async with AsyncClient(app=app, base_url="http://localhost/db/") as async_client:
         response = await async_client.patch(f"update_user_email/?email={user_to_insert['email']}"
-                                  f"&new_email={new_email_for_user}")
+                                            f"&new_email={new_email_for_user}")
 
     updated_user = response.json()
 
