@@ -53,7 +53,7 @@ class BotRepository(BaseRepository):
 
         return Bot.parse_obj(updated_bot)
 
-    async def free(self, username: str) -> Bot:
+    async def free(self, username: str) -> Bot | None:
         """Set status free for a bot"""
         await self.database[BotRepository.COLLECTION_NAME]. \
             update_one({'username': username}, {'$set': {'is_busy': False}})
@@ -61,4 +61,15 @@ class BotRepository(BaseRepository):
         updated_bot = await self.database[BotRepository.COLLECTION_NAME].\
             find_one({'username': username})
 
-        return Bot.parse_obj(updated_bot)
+        if updated_bot:
+            return Bot.parse_obj(updated_bot)
+        else:
+            return None
+
+    async def get_free_bots(self, count: int = 100) -> list[Bot] | None:
+        """Get bots with status=free."""
+
+        cursor = self.database[BotRepository.COLLECTION_NAME].find({"is_busy": False})
+        documents = [jsonable_encoder(document) for document in await cursor.to_list(length=count)]
+
+        return documents
