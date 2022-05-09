@@ -123,7 +123,7 @@ async def get(count: int = 100, bots: BotRepository = Depends(get_bot_repository
     return await bots.get(count)
 
 
-@db_router.post("/create_task/bot", response_model=Task, status_code=status.HTTP_200_OK)
+@db_router.post("/create_task/bot/", response_model=Task, status_code=status.HTTP_200_OK)
 async def create_bot_task(task: Task = Body(..., embed=True),
                           tasks: TaskRepository = Depends(get_task_repository)
                           ):
