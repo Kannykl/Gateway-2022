@@ -119,3 +119,9 @@ async def get_bot_by_username(
 async def get(count: int, bots: BotRepository = Depends(get_bot_repository)):
     """Get count bots from database"""
     return await bots.get(count)
+
+
+@db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
+async def get_free_bots(count: int, bots: BotRepository = Depends(get_bot_repository)):
+    """Get free bots from database."""
+    return await bots.get_free_bots(count)

@@ -62,3 +62,11 @@ class BotRepository(BaseRepository):
             find_one({'username': username})
 
         return Bot.parse_obj(updated_bot)
+
+    async def get_free_bots(self, count: int = 100) -> list[Bot] | None:
+        """Get bots with status=free."""
+
+        cursor = self.database[BotRepository.COLLECTION_NAME].find({"is_busy": False})
+        documents = [jsonable_encoder(document) for document in await cursor.to_list(length=count)]
+
+        return documents
