@@ -133,7 +133,7 @@ async def create_bot_task(task: Task = Body(..., embed=True),
 
 @db_router.patch("/update_task/", response_model=Task, status_code=status.HTTP_200_OK)
 async def update_task_status(task_id: str, task_status: str, tasks: TaskRepository = Depends(get_task_repository)):
-    """Update task status to success and add finish time."""
+    """Update task status."""
     return await tasks.update_status(task_id, task_status)
 
 
@@ -149,9 +149,3 @@ async def create_boost_task(task: BoostTask = Body(..., embed=True),
                             ):
     """Create one new task."""
     return await tasks.create_boost_task(task)
-
-
-@db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
-async def get_free_bots(count: int, bots: BotRepository = Depends(get_bot_repository)):
-    """Get free bots from database."""
-    return await bots.get_free_bots(count)
