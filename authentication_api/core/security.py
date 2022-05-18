@@ -2,7 +2,7 @@
 
 import datetime
 from fastapi import Request, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, SecurityScopes
 from passlib.context import CryptContext
 from jose import jwt
 from starlette import status
@@ -95,3 +95,28 @@ class JWTBearer(HTTPBearer):
             return credentials.credentials
 
         raise exception
+
+
+async def get_current_user_dependency(security_scopes: SecurityScopes, request: Request):
+    """Get current user."""
+    client = request.app.async_client
+
+    token = request.cookies["Token"]
+
+    response = await client.get("/auth/get_current_user", headers={
+        "Authorization": f"Bearer {token}",
+        "security-scopes": security_scopes.scope_str
+    })
+
+    if response.status_code == status.HTTP_403_FORBIDDEN:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail="Not enough permissions or invalid token",
+        )
+    if response.status_code == status.HTTP_401_UNAUTHORIZED:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail="Could not validate credentials",
+        )
+
+    return response.json()
