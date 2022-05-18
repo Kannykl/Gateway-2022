@@ -1,11 +1,11 @@
 """Authentication endpoints"""
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Response, Header
+from fastapi import APIRouter, Request, Depends, HTTPException, Response, Header, Security
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from starlette import status
-from authentication_api.core.security import verify_password, create_access_token,\
-    decode_access_token, JWTBearer
+from authentication_api.core.security import verify_password, create_access_token, \
+    decode_access_token, JWTBearer, get_current_user_dependency
 from authentication_api.models.token import Token, Login
 from authentication_api.models.user import User, UserIn
 
@@ -114,3 +114,27 @@ async def get_current_user(request: Request,
         raise credentials_exception
 
     return user
+
+
+@auth_router.post(
+    "/create_admin",
+    response_model=User,
+    response_model_exclude={"hashed_password"},
+    status_code=status.HTTP_200_OK,
+)
+async def create_admin(request: Request,
+                       user_in: UserIn,
+                       _: User = Security(get_current_user_dependency, scopes=["admin"])
+                       ):
+    """Create admin"""
+    async_request = request.app.async_client
+    response = await async_request.get(f"/db/get_user_by_email/?email={user_in.email}")
+
+    if response.json():
+        return JSONResponse(status_code=409, content={"message": "This email is busy"})
+
+    user_data = {"user": jsonable_encoder(user_in)}
+    response = await async_request.post("/db/create_user/", json=user_data)
+    new_admin = User.parse_obj(response.json())
+
+    return new_admin
