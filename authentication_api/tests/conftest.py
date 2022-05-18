@@ -23,6 +23,7 @@ def register_user_data():
         "email": "user@mail.ru",
         "password": "VeryGoodPass123",
         "password2": "VeryGoodPass123",
+        "is_admin": False
     }
 
 
