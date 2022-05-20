@@ -75,19 +75,13 @@ async def register(request: Request, user_in: UserIn):
     status_code=status.HTTP_200_OK,
 )
 async def get_current_user(request: Request,
-                           security_scopes: list[str] | None = Header(default=None),
+                           security_scopes: str = Header(default=None),
                            token: str = Depends(JWTBearer())
                            ):
     """Get user from token."""
     async_request = request.app.async_client
 
-    if security_scopes:
-        scope_str = " ".join(security_scopes)
-        authenticate_value = f'Bearer scope="{scope_str}"'
-
-    else:
-        security_scopes = []
-        authenticate_value = f"Bearer"
+    authenticate_value = f'Bearer scope="{security_scopes}"' if security_scopes else "Bearer"
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -99,7 +93,7 @@ async def get_current_user(request: Request,
     email: str = payload.get("sub")
     token_scopes = payload.get("scopes", [])
 
-    for scope in security_scopes:
+    for scope in security_scopes.split():
         if scope not in token_scopes:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
