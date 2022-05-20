@@ -38,7 +38,7 @@ async def login(request: Request, response: Response, log_in: Login):
 
     token_data = {"sub": user["email"], "scopes": roles}
     token = create_access_token(token_data)
-    response.set_cookie("Token", token)
+    response.set_cookie("Token", token, httponly=True)
 
     return Token(
         access_token=token, token_type="Bearer"
