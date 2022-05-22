@@ -9,6 +9,7 @@ from authentication_api.core.security import verify_password, create_access_toke
     decode_access_token, JWTBearer
 from authentication_api.models.token import Token, Login
 from authentication_api.models.user import User, UserIn
+from config import logger
 
 
 auth_router = APIRouter()
@@ -31,6 +32,7 @@ async def login(request: Request, log_in: Login):
         return JSONResponse(
             status_code=401, content={"message": "Incorrect username or password"}
         )
+    logger.info(f"{user['email']} has been logged")
 
     return Token(
         access_token=create_access_token({"sub": user["email"]}), token_type="Bearer"
@@ -50,12 +52,15 @@ async def register(request: Request, user_in: UserIn):
     response = await async_request.get(f"/db/get_user_by_email/?email={user_in.email}")
 
     if response.json():
+        logger.info(f"Try to register with existing email = {user_in.email}")
         return JSONResponse(status_code=409, content={"message": "This email is busy"})
 
     user_data = {"user": jsonable_encoder(user_in)}
 
     response = await async_request.post("/db/create_user/", json=user_data)
     new_user = User.parse_obj(response.json())
+
+    logger.info(f"New user registered with email {user_in.email}")
 
     return new_user
 
@@ -76,17 +81,20 @@ async def get_current_user(request: Request, token: str = Depends(JWTBearer())):
     payload = decode_access_token(token)
 
     if payload is None:
+        logger.info("Token has no payload")
         raise cred_exception
 
     email: EmailStr = payload.get("sub")
 
     if email is None:
+        logger.exception(f"{request.session}Token has no email")
         raise cred_exception
 
     response = await async_request.get(f"/db/get_user_by_email/?email={email}")
     user = response.json()
 
     if user is None:
+        logger.exception(f"No user found with this email:{email}")
         raise cred_exception
 
     return user
