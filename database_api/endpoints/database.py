@@ -9,6 +9,7 @@ from database_api.models.task import Task, BoostTask
 from database_api.repositories.bots import BotRepository
 from database_api.repositories.tasks import TaskRepository
 from database_api.repositories.users import UserRepository
+from config import logger
 
 db_router = APIRouter()
 
@@ -37,6 +38,8 @@ async def create_user(
         users: UserRepository = Depends(get_user_repository),
 ):
     """Create user with email."""
+    logger.info(f"User {user.email} created")
+
     return await users.create(user)
 
 
@@ -45,6 +48,8 @@ async def delete_user(
         email: EmailStr, users: UserRepository = Depends(get_user_repository)
 ):
     """Delete one user from database."""
+    logger.info(f"User {email} deleted")
+
     return await users.delete(email)
 
 
@@ -57,6 +62,8 @@ async def update_user_password(
         users: UserRepository = Depends(get_user_repository),
 ):
     """Update user password with one new."""
+    logger.info(f"User {email} updated password")
+
     return await users.update_password(email, new_password)
 
 
@@ -69,6 +76,8 @@ async def update_user_email(
         users: UserRepository = Depends(get_user_repository),
 ):
     """Update user password with one new."""
+    logger.info(f"User {email} updated email to {new_email}")
+
     return await users.update_email(email, new_email)
 
 
@@ -78,12 +87,16 @@ async def create_bot(
         bots: BotRepository = Depends(get_bot_repository),
 ):
     """Create one new bot in database."""
+    logger.info(f"Bot {bot.username} created")
+
     return await bots.create(bot)
 
 
 @db_router.delete("/delete_bot/", status_code=status.HTTP_200_OK)
 async def delete_bot(username: str, bots: BotRepository = Depends(get_bot_repository)):
     """Delete one bot from database."""
+    logger.info(f"Bot {username} deleted")
+
     return await bots.delete(username)
 
 
@@ -94,6 +107,8 @@ async def set_free_bot_status(
         username: str, bots: BotRepository = Depends(get_bot_repository)
 ):
     """Free the bot from a job."""
+    logger.info(f"Status changed to free for bot {username}")
+
     return await bots.free(username)
 
 
@@ -104,6 +119,8 @@ async def set_busy_bot_status(
         username: str, bots: BotRepository = Depends(get_bot_repository)
 ):
     """Switch bot status to busy."""
+    logger.info(f"Status changed to busy for bot {username}")
+
     return await bots.busy(username)
 
 
@@ -133,8 +150,22 @@ async def create_bot_task(task: Task = Body(..., embed=True),
 
 @db_router.patch("/update_task/", response_model=Task, status_code=status.HTTP_200_OK)
 async def update_task_status(task_id: str, task_status: str, tasks: TaskRepository = Depends(get_task_repository)):
-    """Update task status."""
+    """Update task status to success and add finish time."""
     return await tasks.update_status(task_id, task_status)
+
+
+@db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
+async def get_free_bots(count: int = 100, bots: BotRepository = Depends(get_bot_repository)):
+    """Get free bots from database."""
+    return await bots.get_free_bots(count)
+
+
+@db_router.post("/create_task/boost/", response_model=BoostTask, status_code=status.HTTP_200_OK)
+async def create_boost_task(task: BoostTask = Body(..., embed=True),
+                            tasks: TaskRepository = Depends(get_task_repository)
+                            ):
+    """Create one new task."""
+    return await tasks.create_boost_task(task)
 
 
 @db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)

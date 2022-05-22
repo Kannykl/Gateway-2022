@@ -13,7 +13,8 @@ RUN set -eux \
         libressl-dev libffi-dev gcc musl-dev python3-dev \
     && pip install --upgrade pip setuptools wheel \
     && pip install -r /usr/stat_inc/requirements.txt \
-    && rm -rf /root/.cache/pip
+    && rm -rf /root/.cache/pip \
+    && apk add curl
 
 
 COPY . /usr/stat_inc
