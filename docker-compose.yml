@@ -6,11 +6,20 @@ services:
     volumes:
       - ./:/usr/stat_inc/
     ports:
-      - "8000:8000"
+      - "8003:8000"
     depends_on:
       - mongo
+    networks:
+      - my-proxy-net
   mongo:
     image: mongo:5.0.6
     restart: always
     expose:
       - 27017
+    networks:
+      - my-proxy-net
+
+networks:
+  my-proxy-net:
+    external:
+      name: custom_network

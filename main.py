@@ -16,6 +16,7 @@ app.include_router(db_router, prefix='/db', tags=["database"])
 
 origins = [
     "http://localhost:8002",
+    "http://localhost:8003",
     "http://localhost:8000",
     "http://localhost:8080",
 ]
