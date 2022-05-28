@@ -16,6 +16,7 @@ class UserIn(BaseModel):
     email: EmailStr
     password: constr(min_length=8)
     password2: str
+    is_admin: bool = False
 
     @validator("password2")
     def password_match(cls, value, values, **kwargs):

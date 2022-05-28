@@ -30,6 +30,7 @@ async def user_get_by_email():
         json={
             "email": "user@mail.ru",
             "hashed_password": hash_password("VeryGoodPass123"),
+            "is_admin": False
         },
     )
 
@@ -87,7 +88,7 @@ def test_valid_login(monkeypatch, login_user_data, async_client):
     token = response.json()
 
     assert response.status_code == 200
-    assert token["access_token"] == create_access_token({"sub": login_user_data.email})
+    assert token["access_token"] == create_access_token({"sub": login_user_data.email, "scopes": ["user", ]})
 
 
 def test_valid_register(monkeypatch, register_user_data, async_client):
