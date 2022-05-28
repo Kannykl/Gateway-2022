@@ -1,9 +1,10 @@
 """Tests for authentication methods"""
-
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from httpx import Response
-from authentication_api.core.security import create_access_token, hash_password
+
+from authentication_api.core.security import create_access_token
+from authentication_api.core.security import hash_password
 from main import app
 
 
@@ -88,7 +89,9 @@ def test_valid_login(monkeypatch, login_user_data, async_client):
     token = response.json()
 
     assert response.status_code == 200
-    assert token["access_token"] == create_access_token({"sub": login_user_data.email, "scopes": ["user", ]})
+    assert token["access_token"] == create_access_token(
+        {"sub": login_user_data.email}
+    )
 
 
 def test_valid_register(monkeypatch, register_user_data, async_client):
@@ -107,7 +110,9 @@ def test_valid_register(monkeypatch, register_user_data, async_client):
 
 def test_login_with_wrong_password(monkeypatch, login_user_data, async_client):
     """Test login user with invalid credentials"""
-    monkeypatch.setattr(app.async_client, "get", mock_get_user_with_wrong_password)
+    monkeypatch.setattr(
+        app.async_client, "get", mock_get_user_with_wrong_password
+    )
 
     json_data = jsonable_encoder(login_user_data)
 

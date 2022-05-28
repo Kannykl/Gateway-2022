@@ -1,9 +1,8 @@
 """Dependencies of database endpoints"""
-
 from fastapi import Request
-from database_api.repositories.users import UserRepository
+
 from database_api.repositories.bots import BotRepository
-from database_api.repositories.tasks import TaskRepository
+from database_api.repositories.users import UserRepository
 
 
 def get_user_repository(request: Request) -> UserRepository:

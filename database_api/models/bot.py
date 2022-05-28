@@ -1,11 +1,13 @@
 """Bots schemas"""
-
 import uuid
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class Bot(BaseModel):
     """Bot representation in database"""
+
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     username: str
     password: str
@@ -14,5 +16,6 @@ class Bot(BaseModel):
 
 class BotIn(BaseModel):
     """Bot data for creating an instance."""
+
     username: str
     password: str

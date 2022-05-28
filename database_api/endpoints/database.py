@@ -1,11 +1,16 @@
 """Endpoints for database requests"""
-
-from fastapi import APIRouter, Depends, Body, status
+from fastapi import APIRouter
+from fastapi import Body
+from fastapi import Depends
+from fastapi import status
 from pydantic import EmailStr
-from authentication_api.models.user import UserIn, User
-from database_api.endpoints.depends import get_user_repository, get_bot_repository, get_task_repository
-from database_api.models.bot import Bot, BotIn
-from database_api.models.task import Task, BoostTask
+
+from authentication_api.models.user import User
+from authentication_api.models.user import UserIn
+from database_api.endpoints.depends import get_bot_repository
+from database_api.endpoints.depends import get_user_repository
+from database_api.models.bot import Bot
+from database_api.models.bot import BotIn
 from database_api.repositories.bots import BotRepository
 from database_api.repositories.tasks import TaskRepository
 from database_api.repositories.users import UserRepository
@@ -14,8 +19,12 @@ from config import logger
 db_router = APIRouter()
 
 
-@db_router.get("/get_users/", response_model=list[User], status_code=status.HTTP_200_OK)
-async def get_users(count: int, users: UserRepository = Depends(get_user_repository)):
+@db_router.get(
+    "/get_users/", response_model=list[User], status_code=status.HTTP_200_OK
+)
+async def get_users(
+    count: int, users: UserRepository = Depends(get_user_repository)
+):
     """Get count users from database."""
     return await users.get(count)
 
@@ -54,7 +63,9 @@ async def delete_user(
 
 
 @db_router.patch(
-    "/update_user_password/", response_model=User, status_code=status.HTTP_200_OK
+    "/update_user_password/",
+    response_model=User,
+    status_code=status.HTTP_200_OK,
 )
 async def update_user_password(
         email: EmailStr,
@@ -81,7 +92,9 @@ async def update_user_email(
     return await users.update_email(email, new_email)
 
 
-@db_router.post("/create_bot/", response_model=Bot, status_code=status.HTTP_201_CREATED)
+@db_router.post(
+    "/create_bot/", response_model=Bot, status_code=status.HTTP_201_CREATED
+)
 async def create_bot(
         bot: BotIn = Body(..., embed=True),
         bots: BotRepository = Depends(get_bot_repository),
@@ -93,7 +106,9 @@ async def create_bot(
 
 
 @db_router.delete("/delete_bot/", status_code=status.HTTP_200_OK)
-async def delete_bot(username: str, bots: BotRepository = Depends(get_bot_repository)):
+async def delete_bot(
+    username: str, bots: BotRepository = Depends(get_bot_repository)
+):
     """Delete one bot from database."""
     logger.info(f"Bot {username} deleted")
 
@@ -134,42 +149,20 @@ async def get_bot_by_username(
     return await bots.get_by_username(username)
 
 
-@db_router.get("/get_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
-async def get(count: int = 100, bots: BotRepository = Depends(get_bot_repository)):
+@db_router.get(
+    "/get_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK
+)
+async def get(count: int, bots: BotRepository = Depends(get_bot_repository)):
     """Get count bots from database"""
     return await bots.get(count)
 
 
-@db_router.post("/create_task/bot/", response_model=Task, status_code=status.HTTP_200_OK)
-async def create_bot_task(task: Task = Body(..., embed=True),
-                          tasks: TaskRepository = Depends(get_task_repository)
-                          ):
-    """Create one new task."""
-    return await tasks.create_bot_task(task)
-
-
-@db_router.patch("/update_task/", response_model=Task, status_code=status.HTTP_200_OK)
-async def update_task_status(task_id: str, task_status: str, tasks: TaskRepository = Depends(get_task_repository)):
-    """Update task status to success and add finish time."""
-    return await tasks.update_status(task_id, task_status)
-
-
-@db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
-async def get_free_bots(count: int = 100, bots: BotRepository = Depends(get_bot_repository)):
-    """Get free bots from database."""
-    return await bots.get_free_bots(count)
-
-
-@db_router.post("/create_task/boost/", response_model=BoostTask, status_code=status.HTTP_200_OK)
-async def create_boost_task(task: BoostTask = Body(..., embed=True),
-                            tasks: TaskRepository = Depends(get_task_repository)
-                            ):
-    """Create one new task."""
-    return await tasks.create_boost_task(task)
-
-
-@db_router.get("/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK)
-async def get_free_bots(count: int = 100, bots: BotRepository = Depends(get_bot_repository)):
+@db_router.get(
+    "/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK
+)
+async def get_free_bots(
+    count: int, bots: BotRepository = Depends(get_bot_repository)
+):
     """Get free bots from database."""
     return await bots.get_free_bots(count)
 

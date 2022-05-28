@@ -1,11 +1,13 @@
 import motor.motor_asyncio
-from fastapi import FastAPI
 import uvicorn
-from httpx import AsyncClient
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from httpx import AsyncClient
 
 from authentication_api.endpoints.auth import auth_router
-from database_api.config import DATABASE_CONTAINER_NAME, DATABASE_NAME, DATABASE_PORT
+from database_api.config import DATABASE_CONTAINER_NAME
+from database_api.config import DATABASE_NAME
+from database_api.config import DATABASE_PORT
 from database_api.endpoints.database import db_router
 
 app = FastAPI(title="Stat inc")
@@ -32,7 +34,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def start_up_db_client():
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
+    app.mongodb_client = motor.motor_asyncio.\
+        AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}'
+                           f':{DATABASE_PORT}')
     app.mongodb = app.mongodb_client[DATABASE_NAME]
     app.async_client = AsyncClient(app=app, base_url="http://localhost")
 
