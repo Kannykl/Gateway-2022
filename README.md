@@ -37,3 +37,9 @@ docker exec -it gateway_web_1 pytest
 docker exec -it gateway_web_1 pytest --cov=. # c измерением покрытия
 ```
 
+### Инициализация бд
+
+```
+docker exec -it gateway_web_1 sh init_system.sh
+```
+

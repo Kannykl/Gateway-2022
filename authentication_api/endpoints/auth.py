@@ -8,6 +8,7 @@ from authentication_api.core.security import verify_password, create_access_toke
     decode_access_token, JWTBearer
 from authentication_api.models.token import Token, Login
 from authentication_api.models.user import User, UserIn
+from config import logger
 
 
 auth_router = APIRouter()
@@ -30,6 +31,7 @@ async def login(request: Request, response: Response, log_in: Login):
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Incorrect username or password"}
         )
+    logger.info(f"{user['email']} has been logged")
 
     roles: list[str] = ["user", ]
 
@@ -58,12 +60,15 @@ async def register(request: Request, user_in: UserIn):
     response = await async_request.get(f"/db/get_user_by_email/?email={user_in.email}")
 
     if response.json():
+        logger.info(f"Try to register with existing email = {user_in.email}")
         return JSONResponse(status_code=409, content={"message": "This email is busy"})
 
     user_data = {"user": jsonable_encoder(user_in)}
 
     response = await async_request.post("/db/create_user/", json=user_data)
     new_user = User.parse_obj(response.json())
+
+    logger.info(f"New user registered with email {user_in.email}")
 
     return new_user
 
