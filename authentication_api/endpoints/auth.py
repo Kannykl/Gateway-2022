@@ -1,9 +1,8 @@
 """Authentication endpoints"""
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Response, Header
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from pydantic import EmailStr
 from starlette import status
 from authentication_api.core.security import verify_password, create_access_token,\
     decode_access_token, JWTBearer
@@ -21,21 +20,30 @@ auth_router = APIRouter()
     status_code=status.HTTP_200_OK,
     responses={401: {"message": JSONResponse}},
 )
-async def login(request: Request, log_in: Login):
+async def login(request: Request, response: Response, log_in: Login):
     """Login the user and return the token."""
     async_request = request.app.async_client
-    response = await async_request.get(f"/db/get_user_by_email/?email={log_in.email}")
+    response_ = await async_request.get(f"/db/get_user_by_email/?email={log_in.email}")
 
-    user = response.json()
+    user = response_.json()
 
     if user is None or not verify_password(log_in.password, user["hashed_password"]):
         return JSONResponse(
-            status_code=401, content={"message": "Incorrect username or password"}
+            status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Incorrect username or password"}
         )
     logger.info(f"{user['email']} has been logged")
 
+    roles: list[str] = ["user", ]
+
+    if user["is_admin"]:
+        roles: list[str] = ["admin", ]
+
+    token_data = {"sub": user["email"], "scopes": roles}
+    token = create_access_token(token_data)
+    response.set_cookie("Token", token)
+
     return Token(
-        access_token=create_access_token({"sub": user["email"]}), token_type="Bearer"
+        access_token=token, token_type="Bearer"
     )
 
 
@@ -71,30 +79,43 @@ async def register(request: Request, user_in: UserIn):
     response_model_exclude={"hashed_password"},
     status_code=status.HTTP_200_OK,
 )
-async def get_current_user(request: Request, token: str = Depends(JWTBearer())):
+async def get_current_user(request: Request,
+                           security_scopes: list[str] | None = Header(default=None),
+                           token: str = Depends(JWTBearer())
+                           ):
     """Get user from token."""
     async_request = request.app.async_client
 
-    cred_exception = HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, detail="Credentials are not valid"
+    if security_scopes:
+        scope_str = " ".join(security_scopes)
+        authenticate_value = f'Bearer scope="{scope_str}"'
+
+    else:
+        security_scopes = []
+        authenticate_value = f"Bearer"
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": authenticate_value},
     )
+
     payload = decode_access_token(token)
+    email: str = payload.get("sub")
+    token_scopes = payload.get("scopes", [])
 
-    if payload is None:
-        logger.info("Token has no payload")
-        raise cred_exception
-
-    email: EmailStr = payload.get("sub")
-
-    if email is None:
-        logger.exception(f"{request.session}Token has no email")
-        raise cred_exception
+    for scope in security_scopes:
+        if scope not in token_scopes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions",
+                headers={"WWW-Authenticate": authenticate_value},
+            )
 
     response = await async_request.get(f"/db/get_user_by_email/?email={email}")
     user = response.json()
 
     if user is None:
-        logger.exception(f"No user found with this email:{email}")
-        raise cred_exception
+        raise credentials_exception
 
     return user
