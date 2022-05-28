@@ -1,5 +1,4 @@
 """Fixtures for authentication tests"""
-
 import pytest
 from httpx import AsyncClient
 

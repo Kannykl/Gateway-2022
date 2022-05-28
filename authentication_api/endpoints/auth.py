@@ -1,14 +1,21 @@
 """Authentication endpoints"""
-
-from fastapi import APIRouter, Request, Depends, HTTPException, Response, Header, Security
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Request
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from pydantic import EmailStr
 from starlette import status
-from authentication_api.core.security import verify_password, create_access_token, \
-    decode_access_token, JWTBearer, get_current_user_dependency
-from authentication_api.models.token import Token, Login
-from authentication_api.models.user import User, UserIn
-from config import logger
+
+from authentication_api.core.security import create_access_token
+from authentication_api.core.security import decode_access_token
+from authentication_api.core.security import JWTBearer
+from authentication_api.core.security import verify_password
+from authentication_api.models.token import Login
+from authentication_api.models.token import Token
+from authentication_api.models.user import User
+from authentication_api.models.user import UserIn
 
 
 auth_router = APIRouter()
@@ -23,13 +30,18 @@ auth_router = APIRouter()
 async def login(request: Request, response: Response, log_in: Login):
     """Login the user and return the token."""
     async_request = request.app.async_client
-    response_ = await async_request.get(f"/db/get_user_by_email/?email={log_in.email}")
+    response = await async_request.get(
+        f"/db/get_user_by_email/?email={log_in.email}"
+    )
 
     user = response_.json()
 
-    if user is None or not verify_password(log_in.password, user["hashed_password"]):
+    if user is None or not verify_password(
+        log_in.password, user["hashed_password"]
+    ):
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Incorrect username or password"}
+            status_code=401,
+            content={"message": "Incorrect username or password"},
         )
     logger.info(f"{user['email']} has been logged")
 
@@ -43,7 +55,8 @@ async def login(request: Request, response: Response, log_in: Login):
     response.set_cookie("Token", token, httponly=True)
 
     return Token(
-        access_token=token, token_type="Bearer"
+        access_token=create_access_token({"sub": user["email"]}),
+        token_type="Bearer",
     )
 
 
@@ -57,11 +70,14 @@ async def login(request: Request, response: Response, log_in: Login):
 async def register(request: Request, user_in: UserIn):
     """Register users."""
     async_request = request.app.async_client
-    response = await async_request.get(f"/db/get_user_by_email/?email={user_in.email}")
+    response = await async_request.get(
+        f"/db/get_user_by_email/?email={user_in.email}"
+    )
 
     if response.json():
-        logger.info(f"Try to register with existing email = {user_in.email}")
-        return JSONResponse(status_code=409, content={"message": "This email is busy"})
+        return JSONResponse(
+            status_code=409, content={"message": "This email is busy"}
+        )
 
     user_data = {"user": jsonable_encoder(user_in)}
 
@@ -79,14 +95,17 @@ async def register(request: Request, user_in: UserIn):
     response_model_exclude={"hashed_password"},
     status_code=status.HTTP_200_OK,
 )
-async def get_current_user(request: Request,
-                           security_scopes: str = Header(default=None),
-                           token: str = Depends(JWTBearer())
-                           ):
+async def get_current_user(
+    request: Request, token: str = Depends(JWTBearer())
+):
     """Get user from token."""
     async_request = request.app.async_client
 
-    authenticate_value = f'Bearer scope="{security_scopes}"' if security_scopes else "Bearer"
+    cred_exception = HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Credentials are not valid",
+    )
+    payload = decode_access_token(token)
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
