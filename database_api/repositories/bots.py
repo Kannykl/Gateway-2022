@@ -87,3 +87,11 @@ class BotRepository(BaseRepository):
         ]
 
         return documents
+
+    async def get_bot_for_work(self):
+        """Get free bot and set busy=true"""
+        updated_bot = await self.database[
+            BotRepository.COLLECTION_NAME
+        ].findOneAndUpdate({}, {"$set": {"is_busy": True}})
+
+        return Bot.parse_obj(updated_bot) if updated_bot else None
