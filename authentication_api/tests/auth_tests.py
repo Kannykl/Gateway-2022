@@ -90,7 +90,7 @@ def test_valid_login(monkeypatch, login_user_data, async_client):
 
     assert response.status_code == 200
     assert token["access_token"] == create_access_token(
-        {"sub": login_user_data.email}
+        {"sub": login_user_data.email, "scopes": ["user", ]}
     )
 
 
