@@ -2,6 +2,7 @@
 from fastapi import Request
 
 from database_api.repositories.bots import BotRepository
+from database_api.repositories.tasks import TaskRepository
 from database_api.repositories.users import UserRepository
 
 

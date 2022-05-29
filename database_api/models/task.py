@@ -1,7 +1,9 @@
 """Task schemas"""
-
-from pydantic import BaseModel, Field, EmailStr
 import uuid
+
+from pydantic import BaseModel
+from pydantic import EmailStr
+from pydantic import Field
 
 
 class Task(BaseModel):

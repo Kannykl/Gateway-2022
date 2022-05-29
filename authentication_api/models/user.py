@@ -18,10 +18,10 @@ class User(BaseModel):
 
 class UserIn(BaseModel):
     """User data for registration."""
-
     email: EmailStr
     password: str = Field(..., min_length=8, strip_whitespace=True)
     password2: str = Field(..., min_length=8, strip_whitespace=True)
+    is_admin: bool = False
 
     @validator("password2")
     def password_match(cls, value, values, **kwargs):

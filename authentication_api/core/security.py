@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
+from fastapi.security import SecurityScopes
 from jose import jwt
 from passlib.context import CryptContext
 from starlette import status
@@ -104,16 +105,21 @@ class JWTBearer(HTTPBearer):
         raise exception
 
 
-async def get_current_user_dependency(security_scopes: SecurityScopes, request: Request):
+async def get_current_user_dependency(
+    security_scopes: SecurityScopes, request: Request
+):
     """Get current user."""
     client = request.app.async_client
 
     token = request.cookies["Token"]
 
-    response = await client.get("/auth/get_current_user", headers={
-        "Authorization": f"Bearer {token}",
-        "security-scopes": security_scopes.scope_str
-    })
+    response = await client.get(
+        "/auth/get_current_user",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "security-scopes": security_scopes.scope_str,
+        },
+    )
 
     if response.status_code == status.HTTP_403_FORBIDDEN:
         raise HTTPException(

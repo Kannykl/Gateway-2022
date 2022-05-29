@@ -7,14 +7,16 @@ from pydantic import EmailStr
 
 from authentication_api.models.user import User
 from authentication_api.models.user import UserIn
+from config import logger
 from database_api.endpoints.depends import get_bot_repository
+from database_api.endpoints.depends import get_task_repository
 from database_api.endpoints.depends import get_user_repository
 from database_api.models.bot import Bot
 from database_api.models.bot import BotIn
+from database_api.models.task import BoostTask
 from database_api.repositories.bots import BotRepository
 from database_api.repositories.tasks import TaskRepository
 from database_api.repositories.users import UserRepository
-from config import logger
 
 db_router = APIRouter()
 
@@ -33,7 +35,7 @@ async def get_users(
     "/get_user_by_email/", response_model=User, status_code=status.HTTP_200_OK
 )
 async def get_user_by_email(
-        email: EmailStr, users: UserRepository = Depends(get_user_repository)
+    email: EmailStr, users: UserRepository = Depends(get_user_repository)
 ):
     """Get user by email."""
     return await users.get_by_email(email)
@@ -43,8 +45,8 @@ async def get_user_by_email(
     "/create_user/", response_model=User, status_code=status.HTTP_201_CREATED
 )
 async def create_user(
-        user: UserIn = Body(..., embed=True),
-        users: UserRepository = Depends(get_user_repository),
+    user: UserIn = Body(..., embed=True),
+    users: UserRepository = Depends(get_user_repository),
 ):
     """Create user with email."""
     logger.info(f"User {user.email} created")
@@ -54,7 +56,7 @@ async def create_user(
 
 @db_router.delete("/delete_user/", status_code=status.HTTP_200_OK)
 async def delete_user(
-        email: EmailStr, users: UserRepository = Depends(get_user_repository)
+    email: EmailStr, users: UserRepository = Depends(get_user_repository)
 ):
     """Delete one user from database."""
     logger.info(f"User {email} deleted")
@@ -68,9 +70,9 @@ async def delete_user(
     status_code=status.HTTP_200_OK,
 )
 async def update_user_password(
-        email: EmailStr,
-        new_password: str,
-        users: UserRepository = Depends(get_user_repository),
+    email: EmailStr,
+    new_password: str,
+    users: UserRepository = Depends(get_user_repository),
 ):
     """Update user password with one new."""
     logger.info(f"User {email} updated password")
@@ -82,9 +84,9 @@ async def update_user_password(
     "/update_user_email/", response_model=User, status_code=status.HTTP_200_OK
 )
 async def update_user_email(
-        email: EmailStr,
-        new_email: EmailStr,
-        users: UserRepository = Depends(get_user_repository),
+    email: EmailStr,
+    new_email: EmailStr,
+    users: UserRepository = Depends(get_user_repository),
 ):
     """Update user password with one new."""
     logger.info(f"User {email} updated email to {new_email}")
@@ -96,8 +98,8 @@ async def update_user_email(
     "/create_bot/", response_model=Bot, status_code=status.HTTP_201_CREATED
 )
 async def create_bot(
-        bot: BotIn = Body(..., embed=True),
-        bots: BotRepository = Depends(get_bot_repository),
+    bot: BotIn = Body(..., embed=True),
+    bots: BotRepository = Depends(get_bot_repository),
 ):
     """Create one new bot in database."""
     logger.info(f"Bot {bot.username} created")
@@ -119,7 +121,7 @@ async def delete_bot(
     "/update_bot/free/", response_model=Bot, status_code=status.HTTP_200_OK
 )
 async def set_free_bot_status(
-        username: str, bots: BotRepository = Depends(get_bot_repository)
+    username: str, bots: BotRepository = Depends(get_bot_repository)
 ):
     """Free the bot from a job."""
     logger.info(f"Status changed to free for bot {username}")
@@ -131,7 +133,7 @@ async def set_free_bot_status(
     "/update_bot/busy/", response_model=Bot, status_code=status.HTTP_200_OK
 )
 async def set_busy_bot_status(
-        username: str, bots: BotRepository = Depends(get_bot_repository)
+    username: str, bots: BotRepository = Depends(get_bot_repository)
 ):
     """Switch bot status to busy."""
     logger.info(f"Status changed to busy for bot {username}")
@@ -143,7 +145,7 @@ async def set_busy_bot_status(
     "/get_bot_by_username/", response_model=Bot, status_code=status.HTTP_200_OK
 )
 async def get_bot_by_username(
-        username: str, bots: BotRepository = Depends(get_bot_repository)
+    username: str, bots: BotRepository = Depends(get_bot_repository)
 ):
     """Get one bot from database"""
     return await bots.get_by_username(username)
@@ -167,9 +169,14 @@ async def get_free_bots(
     return await bots.get_free_bots(count)
 
 
-@db_router.post("/create_task/boost/", response_model=BoostTask, status_code=status.HTTP_200_OK)
-async def create_boost_task(task: BoostTask = Body(..., embed=True),
-                            tasks: TaskRepository = Depends(get_task_repository)
-                            ):
+@db_router.post(
+    "/create_task/boost/",
+    response_model=BoostTask,
+    status_code=status.HTTP_200_OK,
+)
+async def create_boost_task(
+    task: BoostTask = Body(..., embed=True),
+    tasks: TaskRepository = Depends(get_task_repository),
+):
     """Create one new task."""
     return await tasks.create_boost_task(task)

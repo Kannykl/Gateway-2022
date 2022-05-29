@@ -39,6 +39,7 @@ class UserRepository(BaseRepository):
         user = User(
             email=user_in.email,
             hashed_password=hash_password(user_in.password),
+            is_admin=user_in.is_admin,
         )
         new_user = jsonable_encoder(user)
 
