@@ -19,7 +19,6 @@ from authentication_api.models.token import Login
 from authentication_api.models.token import Token
 from authentication_api.models.user import User
 from authentication_api.models.user import UserIn
-
 from config import logger
 
 auth_router = APIRouter()
@@ -49,14 +48,10 @@ async def login(request: Request, response: Response, log_in: Login):
         )
     logger.info(f"{user['email']} has been logged")
 
-    roles: list[str] = [
-        "user",
-    ]
+    roles: list[str] = ["user"]
 
     if user["is_admin"]:
-        roles: list[str] = [
-            "admin",
-        ]
+        roles.append("admin")
 
     token_data = {"sub": user["email"], "scopes": roles}
     token = create_access_token(token_data)
@@ -166,3 +161,43 @@ async def create_admin(
     new_admin = User.parse_obj(response.json())
 
     return new_admin
+
+
+@auth_router.post(
+    "/telegram_register",
+    response_model=User,
+    response_model_exclude={"hashed_password"},
+    status_code=status.HTTP_200_OK,
+)
+async def register_telegram_user(
+    request: Request,
+    response: Response,
+    user_in: UserIn
+):
+    """Register telegram user"""
+    async_request = request.app.async_client
+    response_ = await async_request.get(
+        f"/db/get_user_by_email/?email={user_in.email}"
+    )
+
+    if response_.json():
+        return JSONResponse(
+            status_code=409, content={"message": "This email is busy"}
+        )
+
+    user_data = {"user": jsonable_encoder(user_in)}
+
+    response_ = await async_request.post("/db/create_user/", json=user_data)
+    new_user = User.parse_obj(response_.json())
+
+    logger.info(f"New user registered with email {user_in.email}")
+    roles: list[str] = ["user"]
+
+    if new_user.is_admin:
+        roles.append("admin")
+
+    token_data = {"sub": new_user.email, "scopes": roles}
+    token = create_access_token(token_data)
+    response.set_cookie("Token", token, httponly=True)
+
+    return new_user

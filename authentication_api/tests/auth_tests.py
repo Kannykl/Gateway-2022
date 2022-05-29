@@ -31,7 +31,7 @@ async def user_get_by_email():
         json={
             "email": "user@mail.ru",
             "hashed_password": hash_password("VeryGoodPass123"),
-            "is_admin": False
+            "is_admin": False,
         },
     )
 
@@ -90,7 +90,12 @@ def test_valid_login(monkeypatch, login_user_data, async_client):
 
     assert response.status_code == 200
     assert token["access_token"] == create_access_token(
-        {"sub": login_user_data.email, "scopes": ["user", ]}
+        {
+            "sub": login_user_data.email,
+            "scopes": [
+                "user",
+            ],
+        }
     )
 
 
@@ -126,5 +131,29 @@ def test_register_existing_user(monkeypatch, register_user_data, async_client):
     monkeypatch.setattr(app.async_client, "get", mock_get_user)
 
     response = client.post("/auth/register", json=register_user_data)
+
+    assert response.status_code == 409
+
+
+def test_register_telegram_user(monkeypatch, register_user_data, async_client):
+    monkeypatch.setattr(app.async_client, "get", mock_no_user_found)
+    monkeypatch.setattr(app.async_client, "post", mock_create_user)
+
+    response = client.post("/auth/telegram_register", json=register_user_data)
+
+    new_user = response.json()
+
+    assert response.status_code == 200
+
+    assert new_user["email"] == register_user_data["email"]
+
+
+def test_register_invalid_telegram_user(
+    monkeypatch, register_user_data, async_client
+):
+    monkeypatch.setattr(app.async_client, "get", mock_get_user)
+    monkeypatch.setattr(app.async_client, "post", mock_create_user)
+
+    response = client.post("/auth/telegram_register", json=register_user_data)
 
     assert response.status_code == 409
