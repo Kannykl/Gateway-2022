@@ -108,11 +108,13 @@ async def test_get_bots(test_db_with_one_bot, bot_to_insert):
 @pytest.mark.asyncio
 async def test_get_free_bots(test_db_with_one_free_bot, free_bot_to_insert):
     """Test get free bots"""
-    async with AsyncClient(app=app, base_url="http://localhost/db/") as async_client:
+    async with AsyncClient(
+        app=app, base_url="http://localhost/db/"
+    ) as async_client:
         response = await async_client.get("get_free_bots/?count=1")
 
     bots = response.json()
 
-    assert bots[0]['_id'] == free_bot_to_insert["_id"]
-    assert bots[0]['username'] == free_bot_to_insert['username']
+    assert bots[0]["_id"] == free_bot_to_insert["_id"]
+    assert bots[0]["username"] == free_bot_to_insert["username"]
     assert response.status_code == 200

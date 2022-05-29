@@ -37,11 +37,13 @@ async def clear_test_bots_db():
 @pytest.fixture()
 async def clear_test_tasks_collections():
     """Clear database with bots collection"""
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
+    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(
+        f"mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}"
+    )
     app.mongodb = app.mongodb_client["test_db"]
 
     yield
-    await app.mongodb['tasks'].delete_many({})
+    await app.mongodb["tasks"].delete_many({})
 
 
 @pytest.fixture()
@@ -155,25 +157,23 @@ def new_email_for_user():
 def create_bot_task_data():
     """Valid create bot tasks data"""
     return {
-        "task": {
-            "owner": "user@example.com",
-            "status": "PENDING",
-            "count": 1
-        }
+        "task": {"owner": "user@example.com", "status": "PENDING", "count": 1}
     }
 
 
 @pytest.fixture()
 async def test_task_collection_with_one_bot_task(task_to_insert):
     """Test db with one user"""
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
+    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(
+        f"mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}"
+    )
     app.mongodb = app.mongodb_client["test_db"]
 
     new_task = jsonable_encoder(task_to_insert)
-    await app.mongodb['tasks'].insert_one(new_task)
+    await app.mongodb["tasks"].insert_one(new_task)
     yield
 
-    await app.mongodb['tasks'].delete_many({})
+    await app.mongodb["tasks"].delete_many({})
 
 
 @pytest.fixture()
@@ -183,7 +183,7 @@ def task_to_insert():
         "_id": str(uuid.uuid4()),
         "owner": "user@example.com",
         "status": "PENDING",
-        "count": 1
+        "count": 1,
     }
 
 
@@ -197,7 +197,7 @@ def boost_task_to_insert():
             "status": "PENDING",
             "count": 1,
             "boost_type": "like",
-            "link": "http://test_url.com"
+            "link": "http://test_url.com",
         }
     }
 
@@ -209,31 +209,36 @@ def free_bot_to_insert():
         "_id": "free_bot_id",
         "username": "bot_to_insert_2",
         "password": "bot_to_insert_password",
-        "is_busy": False
+        "is_busy": False,
+        "is_deleted": False,
     }
 
 
 @pytest.fixture()
 async def test_db_with_one_free_bot(free_bot_to_insert):
     """Test db with one busy bot"""
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
+    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(
+        f"mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}"
+    )
     app.mongodb = app.mongodb_client["test_db"]
 
     new_bot = jsonable_encoder(free_bot_to_insert)
-    await app.mongodb['bots'].insert_one(new_bot)
+    await app.mongodb["bots"].insert_one(new_bot)
     yield
 
-    await app.mongodb['bots'].delete_many({})
+    await app.mongodb["bots"].delete_many({})
 
 
 @pytest.fixture()
 async def test_task_collection_with_one_boost_task(boost_task_to_insert):
     """Test db with one user"""
-    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(f'mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}')
+    app.mongodb_client = motor.motor_asyncio.AsyncIOMotorClient(
+        f"mongodb://{DATABASE_CONTAINER_NAME}:{DATABASE_PORT}"
+    )
     app.mongodb = app.mongodb_client["test_db"]
 
     new_task = jsonable_encoder(boost_task_to_insert)
-    await app.mongodb['tasks'].insert_one(new_task)
+    await app.mongodb["tasks"].insert_one(new_task)
     yield
 
-    await app.mongodb['tasks'].delete_many({})
+    await app.mongodb["tasks"].delete_many({})
