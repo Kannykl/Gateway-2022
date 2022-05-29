@@ -14,6 +14,7 @@ from database_api.endpoints.depends import get_user_repository
 from database_api.models.bot import Bot
 from database_api.models.bot import BotIn
 from database_api.models.task import BoostTask
+from database_api.models.task import Task
 from database_api.repositories.bots import BotRepository
 from database_api.repositories.tasks import TaskRepository
 from database_api.repositories.users import UserRepository
@@ -22,7 +23,9 @@ db_router = APIRouter()
 
 
 @db_router.get(
-    "/get_users/", response_model=list[User], status_code=status.HTTP_200_OK
+    "/get_users/",
+    response_model=list[User],
+    status_code=status.HTTP_200_OK,
 )
 async def get_users(
     count: int, users: UserRepository = Depends(get_user_repository)
@@ -32,17 +35,22 @@ async def get_users(
 
 
 @db_router.get(
-    "/get_user_by_email/", response_model=User, status_code=status.HTTP_200_OK
+    "/get_user_by_email/",
+    response_model=User,
+    status_code=status.HTTP_200_OK,
 )
 async def get_user_by_email(
-    email: EmailStr, users: UserRepository = Depends(get_user_repository)
+    email: EmailStr,
+    users: UserRepository = Depends(get_user_repository),
 ):
     """Get user by email."""
     return await users.get_by_email(email)
 
 
 @db_router.post(
-    "/create_user/", response_model=User, status_code=status.HTTP_201_CREATED
+    "/create_user/",
+    response_model=User,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
     user: UserIn = Body(..., embed=True),
@@ -56,7 +64,8 @@ async def create_user(
 
 @db_router.delete("/delete_user/", status_code=status.HTTP_200_OK)
 async def delete_user(
-    email: EmailStr, users: UserRepository = Depends(get_user_repository)
+    email: EmailStr,
+    users: UserRepository = Depends(get_user_repository),
 ):
     """Delete one user from database."""
     logger.info(f"User {email} deleted")
@@ -81,7 +90,9 @@ async def update_user_password(
 
 
 @db_router.patch(
-    "/update_user_email/", response_model=User, status_code=status.HTTP_200_OK
+    "/update_user_email/",
+    response_model=User,
+    status_code=status.HTTP_200_OK,
 )
 async def update_user_email(
     email: EmailStr,
@@ -95,7 +106,9 @@ async def update_user_email(
 
 
 @db_router.post(
-    "/create_bot/", response_model=Bot, status_code=status.HTTP_201_CREATED
+    "/create_bot/",
+    response_model=Bot,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_bot(
     bot: BotIn = Body(..., embed=True),
@@ -118,7 +131,9 @@ async def delete_bot(
 
 
 @db_router.patch(
-    "/update_bot/free/", response_model=Bot, status_code=status.HTTP_200_OK
+    "/update_bot/free/",
+    response_model=Bot,
+    status_code=status.HTTP_200_OK,
 )
 async def set_free_bot_status(
     username: str, bots: BotRepository = Depends(get_bot_repository)
@@ -130,7 +145,9 @@ async def set_free_bot_status(
 
 
 @db_router.patch(
-    "/update_bot/busy/", response_model=Bot, status_code=status.HTTP_200_OK
+    "/update_bot/busy/",
+    response_model=Bot,
+    status_code=status.HTTP_200_OK,
 )
 async def set_busy_bot_status(
     username: str, bots: BotRepository = Depends(get_bot_repository)
@@ -142,7 +159,9 @@ async def set_busy_bot_status(
 
 
 @db_router.get(
-    "/get_bot_by_username/", response_model=Bot, status_code=status.HTTP_200_OK
+    "/get_bot_by_username/",
+    response_model=Bot,
+    status_code=status.HTTP_200_OK,
 )
 async def get_bot_by_username(
     username: str, bots: BotRepository = Depends(get_bot_repository)
@@ -152,18 +171,53 @@ async def get_bot_by_username(
 
 
 @db_router.get(
-    "/get_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK
+    "/get_bots/",
+    response_model=list[Bot],
+    status_code=status.HTTP_200_OK,
 )
-async def get(count: int, bots: BotRepository = Depends(get_bot_repository)):
+async def get(
+    count: int = 100,
+    bots: BotRepository = Depends(get_bot_repository),
+):
     """Get count bots from database"""
     return await bots.get(count)
 
 
+@db_router.post(
+    "/create_task/bot/",
+    response_model=Task,
+    status_code=status.HTTP_200_OK,
+)
+async def create_bot_task(
+    task: Task = Body(..., embed=True),
+    tasks: TaskRepository = Depends(get_task_repository),
+):
+    """Create one new task."""
+    return await tasks.create_bot_task(task)
+
+
+@db_router.patch(
+    "/update_task/",
+    response_model=Task,
+    status_code=status.HTTP_200_OK,
+)
+async def update_task_status(
+    task_id: str,
+    task_status: str,
+    tasks: TaskRepository = Depends(get_task_repository),
+):
+    """Update task status to success and add finish time."""
+    return await tasks.update_status(task_id, task_status)
+
+
 @db_router.get(
-    "/get_free_bots/", response_model=list[Bot], status_code=status.HTTP_200_OK
+    "/get_free_bots/",
+    response_model=list[Bot],
+    status_code=status.HTTP_200_OK,
 )
 async def get_free_bots(
-    count: int, bots: BotRepository = Depends(get_bot_repository)
+    count: int = 100,
+    bots: BotRepository = Depends(get_bot_repository),
 ):
     """Get free bots from database."""
     return await bots.get_free_bots(count)
@@ -180,3 +234,13 @@ async def create_boost_task(
 ):
     """Create one new task."""
     return await tasks.create_boost_task(task)
+
+
+@db_router.get(
+    "/get_bot_for_work/",
+    response_model=Bot,
+    status_code=status.HTTP_200_OK,
+)
+async def get_bot(bots: BotRepository = Depends(get_bot_repository)):
+    """Get free bot for work from database."""
+    return await bots.get_bot_for_work()
