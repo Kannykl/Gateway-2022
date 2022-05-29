@@ -12,6 +12,7 @@ class Bot(BaseModel):
     username: str
     password: str
     is_busy: bool = False
+    is_deleted: bool = False
 
 
 class BotIn(BaseModel):

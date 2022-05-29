@@ -20,17 +20,15 @@ class TaskRepository(BaseRepository):
 
         return Task.parse_obj(new_task)
 
-    async def update_status(self, task_id: str, status: str):
+    async def update_status(self, task_id: str, status: str) -> Task | None:
         """Update task status"""
         self.database[TaskRepository.COLLECTION_NAME].update_one(
             {"_id": task_id}, {"$set": {"status": status}}
         )
-
-        updated_user = await self.database[
+        updated_task = await self.database[
             TaskRepository.COLLECTION_NAME
         ].find_one({"_id": task_id})
-
-        return Task.parse_obj(updated_user)
+        return Task.parse_obj(updated_task) if updated_task else None
 
     async def create_boost_task(self, task: BoostTask):
         new_task = jsonable_encoder(task)

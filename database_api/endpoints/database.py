@@ -244,3 +244,47 @@ async def create_boost_task(
 async def get_bot(bots: BotRepository = Depends(get_bot_repository)):
     """Get free bot for work from database."""
     return await bots.get_bot_for_work()
+
+
+@db_router.patch(
+    "/update_bot/delete/", response_model=Bot, status_code=status.HTTP_200_OK
+)
+async def update_bot_delete(
+    username: str, bots: BotRepository = Depends(get_bot_repository)
+):
+    """Set delete flag to True"""
+    return await bots.set_deleted_status(username)
+
+
+@db_router.patch(
+    "/update_bot/recover/", response_model=Bot, status_code=status.HTTP_200_OK
+)
+async def update_bot_recover(
+    username: str, bots: BotRepository = Depends(get_bot_repository)
+):
+    """Set delete flag to True"""
+    return await bots.recover(username)
+
+
+@db_router.get(
+    "/get_valid_bots/",
+    response_model=list[Bot],
+    status_code=status.HTTP_200_OK,
+)
+async def get_valid_bots(
+    count: int = 100, bots: BotRepository = Depends(get_bot_repository)
+):
+    """Get count bots from database"""
+    return await bots.get_valid_bots(count)
+
+
+@db_router.patch(
+    "/free_and_recover_bots/",
+    response_model=list[Bot],
+    status_code=status.HTTP_200_OK,
+)
+async def free_and_recover_all_bots(
+    bots: BotRepository = Depends(get_bot_repository),
+):
+    """Get count bots from database"""
+    return await bots.free_and_recover_all_bots()

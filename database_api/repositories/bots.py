@@ -11,7 +11,7 @@ class BotRepository(BaseRepository):
 
     COLLECTION_NAME: str = "bots"
 
-    async def get(self, count: int = 100) -> list[Bot] | None:
+    async def get(self, count: int = 100) -> list[dict] | None:
         """Get count bots from db"""
         cursor = self.database[BotRepository.COLLECTION_NAME].find()
         documents = [
@@ -70,16 +70,13 @@ class BotRepository(BaseRepository):
             BotRepository.COLLECTION_NAME
         ].find_one({"username": username})
 
-        if updated_bot:
-            return Bot.parse_obj(updated_bot)
-        else:
-            return None
+        return Bot.parse_obj(updated_bot) if updated_bot else None
 
     async def get_free_bots(self, count: int = 100) -> list[Bot] | None:
         """Get bots with status=free."""
 
         cursor = self.database[BotRepository.COLLECTION_NAME].find(
-            {"is_busy": False}
+            {"$and": [{"is_busy": False}, {"is_deleted": False}]}
         )
         documents = [
             jsonable_encoder(document)
@@ -92,6 +89,57 @@ class BotRepository(BaseRepository):
         """Get free bot and set busy=true"""
         updated_bot = await self.database[
             BotRepository.COLLECTION_NAME
-        ].findOneAndUpdate({}, {"$set": {"is_busy": True}})
+        ].find_one_and_update(
+            {"$and": [{"is_deleted": False}, {"is_busy": False}]},
+            {"$set": {"is_busy": True}},
+        )
 
         return Bot.parse_obj(updated_bot) if updated_bot else None
+
+    async def set_deleted_status(self, username: str) -> Bot | None:
+        """Set is_deleted flag to True"""
+        await self.database[BotRepository.COLLECTION_NAME].update_one(
+            {"username": username}, {"$set": {"is_deleted": True}}
+        )
+
+        updated_bot = await self.database[
+            BotRepository.COLLECTION_NAME
+        ].find_one({"username": username})
+
+        return Bot.parse_obj(updated_bot) if updated_bot else None
+
+    async def recover(self, username: str) -> Bot | None:
+        """Set deleted flag to False"""
+        await self.database[BotRepository.COLLECTION_NAME].update_one(
+            {"username": username}, {"$set": {"is_deleted": False}}
+        )
+
+        updated_bot = await self.database[
+            BotRepository.COLLECTION_NAME
+        ].find_one({"username": username})
+
+        return Bot.parse_obj(updated_bot) if updated_bot else None
+
+    async def get_valid_bots(self, count: int = 100) -> list[Bot] | None:
+        """Get valid bots fom db"""
+        cursor = self.database[BotRepository.COLLECTION_NAME].find(
+            {"is_deleted": False}
+        )
+        documents = [
+            jsonable_encoder(document)
+            for document in await cursor.to_list(length=count)
+        ]
+
+        return documents
+
+    async def free_and_recover_all_bots(self) -> list[Bot] | None:
+        all_bots = await self.get()
+
+        if all_bots:
+            for bot in all_bots:
+                await self.recover(bot["username"])
+                await self.free(bot["username"])
+
+        free_and_recover_bots = await self.get()
+
+        return free_and_recover_bots
