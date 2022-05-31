@@ -5,12 +5,17 @@ services:
     build: .
     volumes:
       - ./:/usr/stat_inc/
-    ports:
-      - "8003:8000"
     depends_on:
       - mongo
     networks:
       - my-proxy-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.web.loadbalancer.server.port=8001
+      - traefik.http.routers.web.entrypoints=http
+      - traefik.http.routers.web.rule=PathPrefix("/api/gateway") || PathPrefix("/db") || PathPrefix("/auth")
+      - traefik.docker.network=stat_inc_network
+
   mongo:
     image: mongo:5.0.6
     restart: always
@@ -18,8 +23,11 @@ services:
       - 27017
     networks:
       - my-proxy-net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=stat_inc_network
 
 networks:
   my-proxy-net:
     external:
-      name: custom_network
+      name: stat_inc_network

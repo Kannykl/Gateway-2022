@@ -10,7 +10,10 @@ from database_api.config import DATABASE_NAME
 from database_api.config import DATABASE_PORT
 from database_api.endpoints.database import db_router
 
-app = FastAPI(title="Stat inc")
+app = FastAPI(title="Stat inc",
+              docs_url="/api/gateway/docs",
+              openapi_url="/api/gateway/openapi.json"
+              )
 
 app.include_router(auth_router, prefix='/auth', tags=["auth"])
 app.include_router(db_router, prefix='/db', tags=["database"])
