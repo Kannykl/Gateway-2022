@@ -4,12 +4,16 @@ services:
   web:
     image: ${CONTAINER_IMAGE_LATEST}
     container_name: gateway-service
-    ports:
-      - "8000:8000"
     depends_on:
       - mongo
     networks:
       - my-proxy-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.web.loadbalancer.server.port=8001
+      - traefik.http.routers.web.entrypoints=http
+      - traefik.http.routers.web.rule=PathPrefix("/api/gateway") || PathPrefix("/db") || PathPrefix("/auth")
+      - traefik.docker.network=stat_inc_network
 
   mongo:
     image: mongo:5.0.6

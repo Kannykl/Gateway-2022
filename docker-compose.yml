@@ -23,9 +23,6 @@ services:
       - 27017
     networks:
       - my-proxy-net
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=stat_inc_network
 
 networks:
   my-proxy-net:

@@ -5,26 +5,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from httpx import AsyncClient
 
 from authentication_api.endpoints.auth import auth_router
+from config import API_PREFIX
 from database_api.config import DATABASE_CONTAINER_NAME
 from database_api.config import DATABASE_NAME
 from database_api.config import DATABASE_PORT
 from database_api.endpoints.database import db_router
 
+
 app = FastAPI(title="Stat inc",
-              docs_url="/api/gateway/docs",
-              openapi_url="/api/gateway/openapi.json"
+              docs_url=f"{API_PREFIX}/docs",
+              openapi_url=f"{API_PREFIX}/openapi.json"
               )
 
 app.include_router(auth_router, prefix='/auth', tags=["auth"])
 app.include_router(db_router, prefix='/db', tags=["database"])
 
 
-origins = [
-    "http://localhost:8002",
-    "http://localhost:8003",
-    "http://localhost:8000",
-    "http://localhost:8080",
-]
+origins: list = []
 
 app.add_middleware(
     CORSMiddleware,
